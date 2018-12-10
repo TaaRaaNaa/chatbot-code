@@ -1,0 +1,147 @@
+import numpy as np # linear algebra
+import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+
+import pandas as pd
+import numpy as np
+import re
+import string
+import nltk
+from nltk.corpus import stopwords
+stop = set(stopwords.words('english'))
+from wordcloud import WordCloud, STOPWORDS
+import matplotlib as plty
+import matplotlib.pyplot as plt
+import seaborn as sns
+%matplotlib inline
+import sklearn
+
+
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from subprocess import check_output
+
+%matplotlib inline
+import plotly.offline as py
+py.init_notebook_mode(connected=True)
+import plotly.graph_objs as go
+import plotly.tools as tls
+
+import plotly.graph_objs as go
+from sklearn import preprocessing
+Encode = preprocessing.LabelEncoder()
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+tfid = TfidfVectorizer()
+vect = CountVectorizer()
+from sklearn.cross_validation import train_test_split
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.manifold import TSNE
+NB = MultinomialNB()
+
+import nltk
+from nltk.corpus import stopwords
+stopwords = stopwords.words("english")
+from sklearn import metrics
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+
+print(check_output(["ls", "../input"]).decode("utf8"))
+/opt/conda/lib/python3.6/site-packages/sklearn/cross_validation.py:43: DeprecationWarning:
+
+This module was deprecated in version 0.18 in favor of the model_selection module into which all the refactored classes and functions are moved. Also note that the interface of the new CV iterators are different from that of this module. This module will be removed in 0.20.
+
+Sheet_1.csv
+Sheet_2.csv
+
+chatbot = pd.read_csv("../input/Sheet_1.csv",usecols=['response_id','class','response_text'],encoding='latin-1')
+resume = pd.read_csv("../input/Sheet_2.csv",encoding='latin-1')
+Sheet_1.csv contains 80 user responses, in the response_text column, to a therapy chatbot. Bot said: 'Describe a time when you have acted as a resource for someone else'. User responded. If a response is 'not flagged', the user can continue talking to the bot. If it is 'flagged', the user is referred to help.
+
+chatbot['class'].value_counts()
+not_flagged    55
+flagged        25
+Name: class, dtype: int64
+def cloud(text):
+    wordcloud = WordCloud(background_color="blue",stopwords=stop).generate(" ".join([i for i in text.str.upper()]))
+    plt.imshow(wordcloud)
+    plt.axis("off")
+    plt.title("Chat Bot Response")
+cloud(chatbot['response_text'])
+
+Model Building
+
+chatbot['Label'] = Encode.fit_transform(chatbot['class'])
+chatbot['Label'].value_counts()
+#not_flagged    55
+#flagged        25
+1    55
+0    25
+Name: Label, dtype: int64
+Naive Bayes
+
+x = chatbot.response_text
+y = chatbot.Label
+x_train,x_test,y_train,y_test = train_test_split(x,y,random_state=1)
+x_train_dtm = vect.fit_transform(x_train)
+x_test_dtm = vect.transform(x_test)
+NB.fit(x_train_dtm,y_train)
+y_predict = NB.predict(x_test_dtm)
+metrics.accuracy_score(y_test,y_predict)
+0.69999999999999996
+Random Forest
+
+rf = RandomForestClassifier(max_depth=10,max_features=10)
+rf.fit(x_train_dtm,y_train)
+rf_predict = rf.predict(x_test_dtm)
+metrics.accuracy_score(y_test,rf_predict)
+0.80000000000000004
+Chatbot_Text = chatbot["response_text"]
+len(Chatbot_Text)
+80
+Tf_idf = CountVectorizer(max_features=256).fit_transform(Chatbot_Text.values)
+tsne = TSNE(
+    n_components=3,
+    init='random', # pca
+    random_state=101,
+    method='barnes_hut',
+    n_iter=200,
+    verbose=2,
+    angle=0.5
+).fit_transform(Tf_idf.toarray())
+[t-SNE] Computing pairwise distances...
+[t-SNE] Computing 79 nearest neighbors...
+[t-SNE] Computed conditional probabilities for sample 80 / 80
+[t-SNE] Mean sigma: 2.118454
+[t-SNE] Iteration 25: error = -0.4503966, gradient norm = 0.0007019
+[t-SNE] Iteration 25: gradient norm 0.000702. Finished.
+[t-SNE] Iteration 50: error = -0.7398843, gradient norm = 0.0004044
+[t-SNE] Iteration 50: gradient norm 0.000404. Finished.
+[t-SNE] KL divergence after 50 iterations with early exaggeration: -0.739884
+[t-SNE] Iteration 75: error = -0.8899551, gradient norm = 0.0003041
+[t-SNE] Iteration 75: gradient norm 0.000304. Finished.
+[t-SNE] Error after 75 iterations: -0.889955
+ike**trace1 = go.Scatter3d(
+    x=tsne[:,0],
+    y=tsne[:,1],
+    z=tsne[:,2],
+    mode='markers',
+    marker=dict(
+        sizemode='diameter',
+        color = Chatbot_Text.values,
+        colorscale = 'Portland',
+        colorbar = dict(title = 'TExt'),
+        line=dict(color='rgb(255, 255, 255)'),
+        opacity=0.75
+    )
+)
+
+data=[trace1]
+layout=dict(height=800, width=800, title='test')
+fig=dict(data=data, layout=layout)
+py.iplot(fig, filename='3DBubble')
+  File "<ipython-input-12-a08cf102e37d>", line 1
+    ike**trace1 = go.Scatter3d(
+                               ^
+SyntaxError: can't assign to operator
